@@ -1,0 +1,10 @@
+boto3
+botocore
+colored
+Markdown
+PyYAML
+requests
+setuptools
+tabulate
+urllib3
+xmltodict
