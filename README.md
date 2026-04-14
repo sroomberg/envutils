@@ -9,9 +9,10 @@ envutils/
 ├── osx/
 │   └── osx_setup.sh       # Homebrew + core CLI tools + apps
 ├── iterm2/
+│   └── profile.json       # iTerm2 profile
+├── zsh/
 │   ├── setup.sh           # Installs powerlevel10k theme + p10k config
 │   ├── .p10k.zsh          # Powerlevel10k prompt configuration
-│   ├── profile.json       # iTerm2 profile
 │   └── sr.zsh-theme       # Legacy custom zsh theme
 └── bash/
     ├── merge_master.sh    # Shell function: commit, pull, and merge default branch
@@ -36,7 +37,7 @@ Installs Homebrew, then: `curl`, `wget`, `ack`, `pyenv`, `awscli`, Docker, and i
 Requires [Oh My Zsh](https://ohmyz.sh/) to be installed first.
 
 ```bash
-cd iterm2 && ./setup.sh
+cd zsh && ./setup.sh
 ```
 
 Installs the [Powerlevel10k](https://github.com/romkatv/powerlevel10k) theme, sets it in `.zshrc`, and copies the p10k prompt config to `~/`.
