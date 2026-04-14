@@ -15,7 +15,8 @@ envutils/
 │   └── sr.zsh-theme       # Legacy custom zsh theme
 └── bash/
     ├── merge_master.sh    # Shell function: commit, pull, and merge default branch
-    └── pbcopy_setup.sh    # Installs pbcopy/pbpaste support (macOS native, xclip on Linux)
+    ├── pbcopy_setup.sh    # Installs pbcopy/pbpaste support (macOS native, xclip on Linux)
+    └── ssh_keygen.sh      # Shell function: generate and store a new OpenSSH key
 ```
 
 ## Setup
@@ -58,6 +59,20 @@ bash /path/to/envutils/bash/pbcopy_setup.sh
 
 - **macOS**: no-op — `pbcopy`/`pbpaste` are available natively.
 - **Linux (Ubuntu)**: installs `xclip` via `apt` and appends aliases to `.zshrc`/`.bashrc`.
+
+#### `create_ssh_key`
+
+Generates an OpenSSH key pair and stores it in `~/.ssh/`, then adds it to the running ssh-agent.
+
+```
+Usage: create_ssh_key -n <name> [-c <comment>] [-t <key_type>]
+
+Options:
+  -n <name>      Key filename (stored as ~/.ssh/<name>)
+  -c <comment>   Key comment (default: <name>)
+  -t <type>      Key type: ed25519, rsa (default: ed25519)
+  -h             Show help
+```
 
 #### `merge_master`
 
