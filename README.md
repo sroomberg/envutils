@@ -16,7 +16,9 @@ envutils/
 └── bash/
     ├── merge_master.sh    # Shell function: commit, pull, and merge default branch
     ├── pbcopy_setup.sh    # Installs pbcopy/pbpaste support (macOS native, xclip on Linux)
-    └── ssh_keygen.sh      # Shell function: generate and store a new OpenSSH key
+    ├── ssh_keygen.sh      # Shell function: generate and store a new OpenSSH key
+    ├── port_kill.sh       # Shell function: kill process listening on a given port
+    └── clean_branches.sh  # Shell function: delete local branches merged into default
 ```
 
 ## Setup
@@ -59,6 +61,26 @@ bash /path/to/envutils/bash/pbcopy_setup.sh
 
 - **macOS**: no-op — `pbcopy`/`pbpaste` are available natively.
 - **Linux (Ubuntu)**: installs `xclip` via `apt` and appends aliases to `.zshrc`/`.bashrc`.
+
+#### `clean_branches`
+
+Deletes all local branches already merged into the default branch, with a confirmation prompt.
+
+```
+Usage: clean_branches [-d <branch>]
+
+Options:
+  -d <branch>   Default branch to check against (default: master)
+  -h            Show help
+```
+
+#### `port_kill`
+
+Kills the process(es) listening on a given TCP port.
+
+```
+Usage: port_kill <port>
+```
 
 #### `create_ssh_key`
 
