@@ -8,6 +8,11 @@ Personal environment setup utilities for a new machine.
 envutils/
 ├── osx/
 │   └── osx_setup.sh       # Homebrew + core CLI tools + apps
+├── env-setup/
+│   ├── python/
+│   │   └── setup.sh           # Installs pyenv, Python 3.13, pip, and uv globally
+│   └── ruby/
+│       └── setup.sh           # Installs rvm, Ruby 3.3, and Rails globally
 ├── iterm2/
 │   └── profile.json       # iTerm2 profile
 ├── zsh/
@@ -32,7 +37,32 @@ cd osx && ./osx_setup.sh
 
 Installs Homebrew, then: `curl`, `wget`, `ack`, `pyenv`, `awscli`, Docker, and iTerm2.
 
-### 2. iTerm2 / zsh theme
+### 2. Python environment
+
+```bash
+cd env-setup/python && ./setup.sh
+```
+
+- **macOS**: installs pyenv via Homebrew (requires `osx/osx_setup.sh` to have been run first)
+- **Linux**: installs pyenv via the official installer (`pyenv.run`)
+- Installs Python 3.13 and sets it as the global version
+- Installs [uv](https://github.com/astral-sh/uv) globally
+- Adds `pyenv init` to `.zshrc`/`.bashrc` if not already present
+
+### 3. Ruby / Rails environment
+
+```bash
+cd env-setup/ruby && ./setup.sh
+```
+
+- **macOS**: installs `openssl`, `readline`, `libyaml` via Homebrew
+- **Linux**: installs build dependencies via `apt`
+- Installs RVM via the official installer (with GPG key verification)
+- Installs Ruby 3.3 and sets it as the default
+- Installs Rails globally via `gem install rails`
+- Adds `rvm init` to `.zshrc`/`.bashrc` if not already present
+
+### 4. iTerm2 / zsh theme
 
 Requires [Oh My Zsh](https://ohmyz.sh/) to be installed first.
 
@@ -44,7 +74,7 @@ Installs the [Powerlevel10k](https://github.com/romkatv/powerlevel10k) theme, se
 
 To import the iTerm2 profile: **iTerm2 → Preferences → Profiles → Other Actions → Import JSON Profiles** → select `iterm2/profile.json`.
 
-### 3. Shell utilities
+### 5. Shell utilities
 
 Source `merge_master.sh` in your `.zshrc` to get the `merge_master` function:
 
