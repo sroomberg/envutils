@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Global git commit-msg hook to prepend branch name to commit message
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ $BRANCH =~ ^[A-Za-z]{2,}-[0-9]+.*$ ]]; then
+    $COMMIT_MSG="$(cat $COMMIT_MSG_FILE)"
+    NEW_MSG="$BRANCH: $COMMIT_MSG"
+    echo "$NEW_MSG" > $COMMIT_MSG_FILE
+fi
