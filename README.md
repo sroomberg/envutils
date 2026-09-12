@@ -19,6 +19,8 @@ envutils/
 │   ├── setup.sh           # Installs powerlevel10k theme + p10k config
 │   ├── .p10k.zsh          # Powerlevel10k prompt configuration
 │   └── sr.zsh-theme       # Legacy custom zsh theme
+├── git/
+│   └── commit-msg         # Strips agent attribution trailers from commit messages
 └── bash/
     ├── merge_master.sh    # Shell function: commit, pull, and merge default branch
     ├── pbcopy_setup.sh    # Installs pbcopy/pbpaste support (macOS native, xclip on Linux)
@@ -74,7 +76,16 @@ Installs the [Powerlevel10k](https://github.com/romkatv/powerlevel10k) theme, se
 
 To import the iTerm2 profile: **iTerm2 → Preferences → Profiles → Other Actions → Import JSON Profiles** → select `iterm2/profile.json`.
 
-### 5. Shell utilities
+### 5. Git hooks
+
+`git/commit-msg` removes agent attribution trailers (Cursor, Claude, etc.) from commit messages while keeping human co-authors.
+
+```bash
+git config --global core.hooksPath /path/to/envutils/git
+# or: ln -sf /path/to/envutils/git/commit-msg ~/.config/git/hooks/commit-msg
+```
+
+### 6. Shell utilities
 
 Source `merge_master.sh` in your `.zshrc` to get the `merge_master` function:
 

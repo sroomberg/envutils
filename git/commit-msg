@@ -1,11 +1,52 @@
-#!/bin/bash
+#!/bin/sh
+#
+# commit-msg hook: strip agent attribution trailers from commit messages.
+#
+# Install (pick one):
+#   git config --global core.hooksPath /path/to/envutils/git
+#   ln -sf /path/to/envutils/git/commit-msg ~/.config/git/hooks/commit-msg
+#
+# Keeps human trailers such as "Co-authored-by: Steven Roomberg".
 
-# Global git commit-msg hook to prepend branch name to commit message
+COMMIT_MSG_FILE=$1
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+tmp=$(mktemp) || exit 1
+trap 'rm -f "$tmp"' EXIT HUP INT TERM
 
-if [[ $BRANCH =~ ^[A-Za-z]{2,}-[0-9]+.*$ ]]; then
-    $COMMIT_MSG="$(cat $COMMIT_MSG_FILE)"
-    NEW_MSG="$BRANCH: $COMMIT_MSG"
-    echo "$NEW_MSG" > $COMMIT_MSG_FILE
-fi
+while IFS= read -r line || [ -n "$line" ]; do
+	skip=0
+	lower=$(printf '%s' "$line" | tr '[:upper:]' '[:lower:]')
+
+	case $lower in
+	co-authored-by:*)
+		case $lower in
+		*cursor*|*cursoragent@cursor.com*|*claude*|*anthropic*|*noreply@anthropic.com*)
+			skip=1
+			;;
+		esac
+		;;
+	signed-off-by:*cursor*|signed-off-by:*claude*)
+		skip=1
+		;;
+	made-with:*cursor*)
+		skip=1
+		;;
+	*generated*with*|*generated*by*)
+		case $lower in
+		*cursor*|*claude*)
+			skip=1
+			;;
+		esac
+		;;
+	*🤖*generated*)
+		skip=1
+		;;
+	esac
+
+	if [ "$skip" -eq 0 ]; then
+		printf '%s\n' "$line"
+	fi
+done < "$COMMIT_MSG_FILE" > "$tmp"
+
+mv "$tmp" "$COMMIT_MSG_FILE"
+trap - EXIT HUP INT TERM
