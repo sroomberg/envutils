@@ -1,2 +1,8 @@
 .idea/
 *.iml
+
+# Environment files (secrets) — examples are committed
+.env
+.env.*
+!.env.example
+!.env*.example

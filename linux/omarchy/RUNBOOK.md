@@ -99,16 +99,18 @@ git clone <your-envutils-repo> ~/envutils   # or scp bootstrap.sh
 cd ~/envutils/linux/omarchy
 chmod +x bootstrap.sh
 
+# Configure (placeholders only — real .env is gitignored):
+cp .env.example .env
+# edit .env: GIT_NAME, GIT_EMAIL, BACKUP_ROOT, SSH_ADD_KEYS
+
 # Preview:
 ./bootstrap.sh --dry-run
 
-# Run (set identity via env to skip prompts):
-export GIT_NAME="Your Name"
-export GIT_EMAIL="you@example.com"
-export BACKUP_ROOT="${HOME}/Backups/omarchy-restore"   # or /mnt/backup/omarchy-restore
-
+# Run (reads .env; shell exports override .env if already set):
 ./bootstrap.sh
 ```
+
+`.env` search order: `<script-dir>/.env` first, then `$PWD/.env` if different. Missing `.env` is fine — use prompts or inline env vars instead.
 
 Log: `~/omarchy-bootstrap.log`
 
@@ -175,6 +177,7 @@ Some units pop the speaker on headphone insert/remove. **Only apply if confirmed
 | Path | Purpose |
 |------|---------|
 | `linux/omarchy/bootstrap.sh` | Post-install bootstrap |
+| `linux/omarchy/.env.example` | Template — copy to `.env` (gitignored) |
 | `linux/omarchy/RUNBOOK.md` | This document |
 | `env-setup/python/setup.sh` | Python/pyenv after migration |
 | `env-setup/ruby/setup.sh` | Ruby/RVM after migration |

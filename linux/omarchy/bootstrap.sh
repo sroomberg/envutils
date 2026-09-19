@@ -6,13 +6,19 @@
 # Idempotent-ish: safe to re-run; skips steps already completed.
 #
 # Usage:
+#   cp .env.example .env   # edit placeholders — never commit .env
 #   ./bootstrap.sh [--dry-run]
-#   BACKUP_ROOT=~/Backups/omarchy-restore GIT_NAME="Steven Roomberg" GIT_EMAIL="you@example.com" ./bootstrap.sh
+#   GIT_NAME="Steven Roomberg" GIT_EMAIL="you@example.com" ./bootstrap.sh   # shell env overrides .env
 #
 # Options:
 #   --dry-run   Print actions without executing (still logs to ~/omarchy-bootstrap.log)
 #
-# Environment:
+# Configuration (.env and environment):
+#   Search order (later files override earlier; shell env overrides all):
+#     1. <script-dir>/.env   (same directory as bootstrap.sh)
+#     2. $PWD/.env             (only if different path from script-dir)
+#   Missing .env is fine. Copy .env.example → .env and fill in values.
+#
 #   BACKUP_ROOT   Directory containing backed-up ~/.ssh, Documents, etc. (default below)
 #   GIT_NAME      Git user.name (prompted if unset)
 #   GIT_EMAIL     Git user.email (prompted if unset)
@@ -23,8 +29,43 @@
 set -euo pipefail
 
 readonly SCRIPT_NAME="${0##*/}"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LOG_FILE="${HOME}/omarchy-bootstrap.log"
 readonly DEFAULT_BACKUP_ROOT="${HOME}/Backups/omarchy-restore"
+
+# Variables the shell may already export before .env is loaded (shell env wins).
+readonly _ENV_KEYS=(GIT_NAME GIT_EMAIL BACKUP_ROOT SSH_ADD_KEYS)
+declare -a LOADED_ENV_FILES=()
+
+load_dotenv() {
+  local -A preset=()
+  local key f
+  for key in "${_ENV_KEYS[@]}"; do
+    if [[ -v "$key" ]]; then
+      preset["$key"]="${!key}"
+    fi
+  done
+
+  local candidates=()
+  [[ -f "${SCRIPT_DIR}/.env" ]] && candidates+=("${SCRIPT_DIR}/.env")
+  if [[ -f "${PWD}/.env" && "${PWD}/.env" != "${SCRIPT_DIR}/.env" ]]; then
+    candidates+=("${PWD}/.env")
+  fi
+
+  for f in "${candidates[@]}"; do
+    set -a
+    # shellcheck disable=SC1090
+    source "$f"
+    set +a
+    LOADED_ENV_FILES+=("$f")
+  done
+
+  for key in "${!preset[@]}"; do
+    printf -v "$key" '%s' "${preset[$key]}"
+  done
+}
+
+load_dotenv
 
 DRY_RUN=0
 BACKUP_ROOT="${BACKUP_ROOT:-$DEFAULT_BACKUP_ROOT}"
@@ -108,6 +149,12 @@ main() {
   mkdir -p "$(dirname "$LOG_FILE")"
   : >"$LOG_FILE"
   log "=== Omarchy bootstrap started (dry_run=$DRY_RUN) ==="
+
+  if [[ ${#LOADED_ENV_FILES[@]} -gt 0 ]]; then
+    log "Loaded .env: ${LOADED_ENV_FILES[*]} (shell env overrides .env)"
+  else
+    log "No .env found (checked ${SCRIPT_DIR}/.env and ${PWD}/.env); using defaults, shell env, or prompts."
+  fi
 
   if ! is_omarchy; then
     log "ERROR: Omarchy not detected. Refusing to run on a non-Omarchy system."

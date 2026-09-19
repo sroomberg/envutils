@@ -11,6 +11,7 @@ envutils/
 ├── linux/
 │   └── omarchy/
 │       ├── bootstrap.sh   # Post-install bootstrap for Omarchy 4 (Quattro)
+│       ├── .env.example   # Template for local .env (gitignored)
 │       └── RUNBOOK.md     # Ubuntu → Omarchy migration runbook (X1 Carbon Gen 3)
 ├── env-setup/
 │   ├── python/
@@ -49,11 +50,12 @@ For migrating from Ubuntu to [Omarchy 4 (Quattro)](https://omarchy.org/) with fu
 
 ```bash
 cd linux/omarchy
+cp .env.example .env        # edit GIT_NAME, GIT_EMAIL, BACKUP_ROOT, etc.
 ./bootstrap.sh --dry-run    # preview
-GIT_NAME="Your Name" GIT_EMAIL="you@example.com" ./bootstrap.sh
+./bootstrap.sh              # shell env overrides .env when already exported
 ```
 
-See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script uses `omarchy update` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
+See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script loads `.env` (see `.env.example`), uses `omarchy update` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
 
 ### 3. Python environment
 
