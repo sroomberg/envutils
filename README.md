@@ -8,6 +8,11 @@ Personal environment setup utilities for a new machine.
 envutils/
 ├── osx/
 │   └── osx_setup.sh       # Homebrew + core CLI tools + apps
+├── linux/
+│   └── omarchy/
+│       ├── bootstrap.sh   # Post-install bootstrap for Omarchy 4 (Quattro)
+│       ├── .env.example   # Template for local .env (gitignored)
+│       └── RUNBOOK.md     # Ubuntu → Omarchy migration runbook (X1 Carbon Gen 3)
 ├── env-setup/
 │   ├── python/
 │   │   └── setup.sh           # Installs pyenv, Python 3.13, pip, and uv globally
@@ -39,7 +44,20 @@ cd osx && ./osx_setup.sh
 
 Installs Homebrew, then: `curl`, `wget`, `ack`, `pyenv`, `awscli`, Docker, and iTerm2.
 
-### 2. Python environment
+### 2. Omarchy 4 (Linux) — post-install bootstrap
+
+For migrating from Ubuntu to [Omarchy 4 (Quattro)](https://omarchy.org/) with full-disk LUKS (e.g. ThinkPad X1 Carbon Gen 3):
+
+```bash
+cd linux/omarchy
+cp .env.example .env        # edit GIT_NAME, GIT_EMAIL, BACKUP_ROOT, etc.
+./bootstrap.sh --dry-run    # preview
+./bootstrap.sh              # shell env overrides .env when already exported
+```
+
+See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script loads `.env` (see `.env.example`), uses `omarchy update` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
+
+### 3. Python environment
 
 ```bash
 cd env-setup/python && ./setup.sh
@@ -51,7 +69,7 @@ cd env-setup/python && ./setup.sh
 - Installs [uv](https://github.com/astral-sh/uv) globally
 - Adds `pyenv init` to `.zshrc`/`.bashrc` if not already present
 
-### 3. Ruby / Rails environment
+### 4. Ruby / Rails environment
 
 ```bash
 cd env-setup/ruby && ./setup.sh
@@ -64,7 +82,7 @@ cd env-setup/ruby && ./setup.sh
 - Installs Rails globally via `gem install rails`
 - Adds `rvm init` to `.zshrc`/`.bashrc` if not already present
 
-### 4. iTerm2 / zsh theme
+### 5. iTerm2 / zsh theme
 
 Requires [Oh My Zsh](https://ohmyz.sh/) to be installed first.
 
@@ -76,7 +94,7 @@ Installs the [Powerlevel10k](https://github.com/romkatv/powerlevel10k) theme, se
 
 To import the iTerm2 profile: **iTerm2 → Preferences → Profiles → Other Actions → Import JSON Profiles** → select `iterm2/profile.json`.
 
-### 5. Git hooks
+### 6. Git hooks
 
 `git/commit-msg` removes agent attribution trailers (Cursor, Claude, etc.) from commit messages while keeping human co-authors.
 
@@ -85,7 +103,7 @@ git config --global core.hooksPath /path/to/envutils/git
 # or: ln -sf /path/to/envutils/git/commit-msg ~/.config/git/hooks/commit-msg
 ```
 
-### 6. Shell utilities
+### 7. Shell utilities
 
 Source `merge_master.sh` in your `.zshrc` to get the `merge_master` function:
 
