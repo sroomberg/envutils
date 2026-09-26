@@ -191,7 +191,7 @@ system_update() {
     warn "omarchy CLI not found; skipping omarchy update."
     return
   fi
-  run omarchy update
+  run omarchy update -y
 }
 
 # ── git identity ──────────────────────────────────────────────────────────────
