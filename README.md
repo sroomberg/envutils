@@ -50,12 +50,12 @@ For migrating from Ubuntu to [Omarchy 4 (Quattro)](https://omarchy.org/) with fu
 
 ```bash
 cd linux/omarchy
-cp .env.example .env        # edit GIT_NAME, GIT_EMAIL, BACKUP_ROOT, etc.
+cp .env.example .env        # edit GIT_NAME, GIT_EMAIL, BACKUP_ROOT (quote values with spaces)
 ./bootstrap.sh --dry-run    # preview
 ./bootstrap.sh              # shell env overrides .env when already exported
 ```
 
-See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script loads `.env` (see `.env.example`), uses `omarchy update` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
+See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script loads `.env` (see `.env.example`; unquoted `GIT_NAME=First Last` breaks `source .env` under `set -e`), runs `omarchy update -y` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
 
 ### 3. Python environment
 

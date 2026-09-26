@@ -102,6 +102,8 @@ chmod +x bootstrap.sh
 # Configure (placeholders only — real .env is gitignored):
 cp .env.example .env
 # edit .env: GIT_NAME, GIT_EMAIL, BACKUP_ROOT, SSH_ADD_KEYS
+# Quote names with spaces, e.g. GIT_NAME="Steven Roomberg" — unquoted
+# GIT_NAME=Steven Roomberg breaks `source .env` under bootstrap.sh (set -e).
 
 # Preview:
 ./bootstrap.sh --dry-run
@@ -117,7 +119,7 @@ Log: `~/omarchy-bootstrap.log`
 The script will:
 
 - Refuse to run if Omarchy is not detected
-- Run `omarchy update`
+- Run `omarchy update -y` (unattended; avoids gum “Ready to update?” on non-interactive runs)
 - Configure git identity
 - Restore SSH keys from `BACKUP_ROOT/.ssh`
 - Install CLI tools via `omarchy pkg add`
