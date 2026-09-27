@@ -12,7 +12,7 @@ envutils/
 │   └── omarchy/
 │       ├── bootstrap.sh   # Post-install bootstrap for Omarchy 4 (Quattro)
 │       ├── .env.example   # Template for local .env (gitignored)
-│       ├── RUNBOOK.md     # Ubuntu → Omarchy migration runbook (X1 Carbon Gen 3)
+│       ├── CONFIG.md      # Omarchy machine desired state + recreate (X1 Carbon Gen 3)
 │       └── window-switcher/  # All-workspace Alt+Tab + macOS-style HUD (see its own README)
 ├── env-setup/
 │   ├── python/
@@ -56,7 +56,7 @@ cp .env.example .env        # edit GIT_NAME, GIT_EMAIL, BACKUP_ROOT (quote value
 ./bootstrap.sh              # shell env overrides .env when already exported
 ```
 
-See **`linux/omarchy/RUNBOOK.md`** for backup → BIOS → ISO install → bootstrap → checklist. The script loads `.env` (see `.env.example`; unquoted `GIT_NAME=First Last` breaks `source .env` under `set -e`), runs `omarchy update -y` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
+See **`linux/omarchy/CONFIG.md`** for machine identity, Hyprland/dock/input customizations, backup/restore rules, and the full recreate checklist (backup → BIOS → LUKS install → bootstrap → personalization). The script loads `.env` (see `.env.example`; unquoted `GIT_NAME=First Last` breaks `source .env` under `set -e`), runs `omarchy update -y` / `omarchy pkg add`, restores SSH keys from `BACKUP_ROOT`, and documents Cursor, Docker, Snap stand-ins, and HiDPI notes.
 
 ### 3. Python environment
 
