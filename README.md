@@ -12,7 +12,8 @@ envutils/
 │   └── omarchy/
 │       ├── bootstrap.sh   # Post-install bootstrap for Omarchy 4 (Quattro)
 │       ├── .env.example   # Template for local .env (gitignored)
-│       └── RUNBOOK.md     # Ubuntu → Omarchy migration runbook (X1 Carbon Gen 3)
+│       ├── RUNBOOK.md     # Ubuntu → Omarchy migration runbook (X1 Carbon Gen 3)
+│       └── window-switcher/  # All-workspace Alt+Tab + macOS-style HUD (see its own README)
 ├── env-setup/
 │   ├── python/
 │   │   └── setup.sh           # Installs pyenv, Python 3.13, pip, and uv globally
