@@ -3,6 +3,7 @@
 # omarchy-bootstrap.sh — Post-install bootstrap for Omarchy 4 (Quattro)
 #
 # Run once after first login on a fresh Omarchy install (e.g. ThinkPad X1 Carbon Gen 3).
+# Full install + personalization checklist: see CONFIG.md in this directory.
 # Idempotent-ish: safe to re-run; skips steps already completed.
 #
 # Usage:
