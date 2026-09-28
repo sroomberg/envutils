@@ -25,7 +25,7 @@ Living reference for how **Steven Roomberg’s** Omarchy 4 (Quattro) / Hyprland 
 | `linux/omarchy/CONFIG.md` | This document — desired state + recreate |
 | `linux/omarchy/bootstrap.sh` | Post-install bootstrap (packages, SSH restore, reminders) |
 | `linux/omarchy/.env.example` | Template for local `.env` (never commit `.env`) |
-| `linux/omarchy/window-switcher/` | All-workspace Alt+Tab + macOS-style HUD |
+| [omarchy-window-switcher](https://github.com/sroomberg/omarchy-window-switcher) | All-workspace Alt+Tab + macOS-style HUD (Omarchy plugin; not vendored in envutils) |
 | `env-setup/python/setup.sh` | Python via pyenv (after migration; prefer mise on Omarchy when possible) |
 | `env-setup/ruby/setup.sh` | Ruby via RVM (legacy; prefer mise/pacman on Omarchy) |
 | `zsh/setup.sh` | Powerlevel10k restore |
@@ -69,6 +69,89 @@ Config files are under `~/.config/hypr/` (Lua). Omarchy merges personal override
 - `border_size = 0` — no visible focus border.
 - **`resize_on_border`:** keep **`false`** while the **left-edge dock** is in use. If `true` with an extended grab area, edge resize can fight the dock hover zone on the left. Optional edge resize (no Super) is possible only if the dock moves away from the left edge.
 - Historically, maximize-on-title-bar-double-click was removed from Omarchy default `windows.lua` behavior on this machine (prefer manual sizing).
+
+Personal `~/.config/hypr/bindings.lua` also unbinds stock tiling/scratchpad shortcuts (`SUPER+T`, layout toggles, scratchpad) so windows stay floating; see live bindings on the machine.
+
+### Window switcher (Alt+Tab, all workspaces)
+
+Stock Omarchy/Hyprland **Alt+Tab only cycles windows on the current workspace**. This machine uses the standalone plugin **[omarchy-window-switcher](https://github.com/sroomberg/omarchy-window-switcher)** for macOS-style **Cmd+Tab** behavior: cycle across **all** workspaces (following focus to the target’s workspace) and show a centered HUD while switching.
+
+Install path is **`omarchy plugin add`** — not the old envutils `linux/omarchy/window-switcher/` sketch (removed from envutils; plugin repo is canonical).
+
+#### Install
+
+**1. Plugin (HUD overlay)**
+
+```bash
+omarchy plugin add https://github.com/sroomberg/omarchy-window-switcher.git --enable --yes
+```
+
+- Installs to `~/.config/omarchy/plugins/sroomberg.window-switcher/`
+- **`--enable` is required** — a disabled plugin does not render the overlay (`omarchy plugin enable sroomberg.window-switcher` if you skipped `--enable`).
+- Ensure `~/.config/omarchy/shell.json` registers the plugin:
+
+  ```json
+  "plugins": [{ "id": "sroomberg.window-switcher" }]
+  ```
+
+  (`omarchy plugin add --enable` normally adds this; merge carefully if you already customize bar layout / caps-lock module.)
+
+**2. Scripts (manual — plugin add does not install bins)**
+
+Copy from the cloned plugin directory (scripts live beside the QML bundle):
+
+```bash
+cp ~/.config/omarchy/plugins/sroomberg.window-switcher/scripts/hypr-cycle-window.sh ~/.local/bin/hypr-cycle-window
+cp ~/.config/omarchy/plugins/sroomberg.window-switcher/scripts/hypr-cycle-window-end.sh ~/.local/bin/hypr-cycle-window-end
+chmod +x ~/.local/bin/hypr-cycle-window ~/.local/bin/hypr-cycle-window-end
+```
+
+**3. Keybindings** — `~/.config/hypr/bindings.lua`
+
+Unbind stock workspace-local cycling, then bind the scripts with **repeat while held**:
+
+```lua
+hl.unbind("ALT + TAB")
+hl.unbind("ALT + SHIFT + TAB")
+o.bind("ALT + TAB", "Cycle window (all workspaces)", "hypr-cycle-window next", { repeating = true })
+o.bind("ALT + SHIFT + TAB", "Cycle window backward (all workspaces)", "hypr-cycle-window prev", { repeating = true })
+```
+
+- Use **`repeating = true`** so holding Tab keeps firing (otherwise the HUD session goes idle mid-hold).
+- Lua’s `repeat` is a reserved keyword — the Omarchy bind wrapper option is **`repeating`**, not `{ repeat = true }` (syntax error).
+- **Do not** bind `Alt_L` / `Alt_R` with `{ release = true }` on this machine — it registers without error but **never fires** on bare modifier release (confirmed on this Hyprland/Omarchy build). There is no Alt-release commit path.
+
+**4. Autostart (recommended)** — append to `~/.config/hypr/autostart.lua` (alongside dock, etc.):
+
+```lua
+o.launch_on_start("hypr-cycle-window-end")
+```
+
+Clears stale HUD state at login (`~/.local/state/omarchy/window-switcher/state.json`) so a crash/reboot cannot flash the overlay for up to ~3s.
+
+Full upstream steps: [omarchy-window-switcher README](https://github.com/sroomberg/omarchy-window-switcher/blob/master/README.md).
+
+#### Architecture
+
+| Piece | Role |
+|-------|------|
+| `hypr-cycle-window` | Bash: snapshots window order once per **session**, switches workspace/focus, writes HUD JSON on every Tab press |
+| `hypr-cycle-window-end` | Bash: manual reset / login cleanup (clears session + hides HUD) |
+| `WindowSwitcher.qml` | Passive Quickshell overlay (`WlrKeyboardFocus.None`): `FileView` on state JSON — no keyboard focus, no switching logic |
+| `state.json` | `~/.local/state/omarchy/window-switcher/state.json` |
+
+**Sessions are time-based (~3s):** if `hypr-cycle-window` is not invoked for `session_timeout_s` (3 seconds), the next Tab starts a fresh snapshot. The QML overlay runs a matching 3s watchdog (reset on each state file update) to hide the HUD — same window as the script, since Alt-release detection is unavailable.
+
+**Why `cycle_next` nudge:** Omarchy’s Lua Hyprland layer has no focus-by-window-address dispatcher (`hl.dsp.*` only targets the focused window or by direction/workspace). After switching workspace, the script walks in-workspace focus with bounded `cycle_next()` until the target window is focused (same class of limitation as `nwg-dock-hyprland` click-to-focus on this fork).
+
+#### HUD only off
+
+Cycling and overlay are independent:
+
+```bash
+omarchy plugin disable sroomberg.window-switcher   # HUD off; Alt+Tab cycling still works
+omarchy plugin enable sroomberg.window-switcher      # HUD back
+```
 
 ---
 
@@ -280,7 +363,7 @@ Reapply Hyprland / Omarchy overrides documented above:
 3. Caps Lock bar module + `shell.json` layout entry.
 4. Ghostty default, zsh/p10k from envutils backup.
 5. Install apps (Cursor, Zed, Claude Desktop, Chromium, 1Password, Obsidian, …) and re-pin dock.
-6. Optional: `linux/omarchy/window-switcher/` for Alt+Tab HUD.
+6. **Window switcher:** `omarchy plugin add https://github.com/sroomberg/omarchy-window-switcher.git --enable --yes`; copy `hypr-cycle-window` scripts to `~/.local/bin`; wire `bindings.lua` + `autostart.lua` per **Window switcher** section above; confirm `shell.json` lists `sroomberg.window-switcher`.
 
 ### Phase 6 — Post-install checklist
 
@@ -303,6 +386,9 @@ Reapply Hyprland / Omarchy overrides documented above:
 | Wi-Fi missing | `ip link`; Intel 7265 firmware usually in kernel |
 | UI scale wrong | Settings → Display |
 | Dock not starting | `systemctl --user status nwg-dock`; `pgrep -af nwg-dock-hyprland` |
+| Alt+Tab HUD missing | `omarchy plugin list`; enable plugin + `shell.json` `"plugins"` entry |
+| Alt+Tab does nothing | Scripts in `~/.local/bin/hypr-cycle-window*` executable; bindings unbind stock ALT+TAB |
+| HUD stuck after reboot | Add `o.launch_on_start("hypr-cycle-window-end")`; or wait 3s / run `hypr-cycle-window-end` |
 
 ### Optional — Realtek headphone pop (X1C3)
 
@@ -323,8 +409,12 @@ Some units pop the speaker on headphone insert/remove. **Only if confirmed Realt
 ~/.config/hypr/apps.lua
 ~/.config/hypr/looknfeel.lua
 ~/.config/hypr/autostart.lua
-~/.config/hypr/bindings.lua
+~/.config/hypr/bindings.lua          # Alt+Tab → hypr-cycle-window (repeating = true)
 ~/.config/hypr/monitors.lua
+~/.local/bin/hypr-cycle-window
+~/.local/bin/hypr-cycle-window-end
+~/.local/state/omarchy/window-switcher/state.json
+~/.config/omarchy/plugins/sroomberg.window-switcher/
 ~/.local/bin/start-nwg-dock
 ~/.local/bin/nwg-dock-apps-launcher
 ~/.config/systemd/user/nwg-dock.service
