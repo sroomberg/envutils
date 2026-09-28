@@ -37,10 +37,24 @@ resolve_icon() {
 clients_json="$(hyprctl clients -j)"
 current_address="$(hyprctl activewindow -j 2>/dev/null | jq -r '.address // empty')"
 
+session_valid=false
 if [[ -f "$session_file" ]]; then
-  addresses_json="$(jq -c '.addresses' "$session_file")"
-  index="$(jq -r '.index' "$session_file")"
-else
+  addresses_json="$(jq -c '.addresses' "$session_file" 2>/dev/null || echo '[]')"
+  index="$(jq -r '.index' "$session_file" 2>/dev/null || echo 0)"
+  # A leftover session file (crash, missed release event, or — since this is
+  # a plain file in ~/.local/state — simply surviving a reboot) can reference
+  # windows that no longer exist. Trust it only if every address it lists is
+  # still an actual open window right now; otherwise treat it as absent and
+  # take a fresh snapshot.
+  if [[ -n "$addresses_json" && "$addresses_json" != "null" ]]; then
+    stale_count="$(echo "$clients_json" | jq --argjson addrs "$addresses_json" '
+      [$addrs[] as $a | select(([.[]|.address] | index($a)) == null)] | length
+    ' 2>/dev/null || echo 1)"
+    [[ "$stale_count" == "0" ]] && session_valid=true
+  fi
+fi
+
+if [[ "$session_valid" != "true" ]]; then
   addresses_json="$(echo "$clients_json" | jq -c 'sort_by(.focusHistoryID) | [.[].address]')"
   index=0
 fi

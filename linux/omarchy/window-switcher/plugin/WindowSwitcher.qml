@@ -37,6 +37,7 @@ Item {
     root.apps = parsed.apps || []
     root.selected = parsed.selected || 0
     root.visiblePanel = !!parsed.visible && root.apps.length > 0
+    if (root.visiblePanel) watchdog.restart()
   }
 
   FileView {
@@ -47,6 +48,19 @@ Item {
     onLoaded: root.applyState(text())
     onFileChanged: reload()
     onLoadFailed: root.visiblePanel = false
+  }
+
+  // The HUD is meant to hide the instant Alt is released (see
+  // hypr-cycle-window-end.sh, bound to Alt_L/Alt_R release). That binding
+  // can miss its moment — e.g. a Hyprland config reload while Alt is held
+  // resets the compositor's press-tracking, so the release event that
+  // should fire the unbind script never comes — which would otherwise leave
+  // this HUD stuck on screen indefinitely. This timer is the backstop: if
+  // no Tab press refreshes the state file for a bit, hide regardless.
+  Timer {
+    id: watchdog
+    interval: 2500
+    onTriggered: root.visiblePanel = false
   }
 
   PanelWindow {

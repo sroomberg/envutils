@@ -54,11 +54,29 @@ Then in `~/.config/hypr/bindings.lua`:
 ```lua
 hl.unbind("ALT + TAB")
 hl.unbind("ALT + SHIFT + TAB")
-o.bind("ALT + TAB", "Cycle window (all workspaces)", "hypr-cycle-window next")
-o.bind("ALT + SHIFT + TAB", "Cycle window backward (all workspaces)", "hypr-cycle-window prev")
+o.bind("ALT + TAB", "Cycle window (all workspaces)", "hypr-cycle-window next", { repeating = true })
+o.bind("ALT + SHIFT + TAB", "Cycle window backward (all workspaces)", "hypr-cycle-window prev", { repeating = true })
 o.bind("Alt_L", "End window-switcher session", "hypr-cycle-window-end", { release = true })
 o.bind("Alt_R", "End window-switcher session (right alt)", "hypr-cycle-window-end", { release = true })
 ```
+
+`repeating = true` matters: without it, holding Tab down (rather than tapping
+repeatedly) never re-fires the binding, `state.json` goes stale, and the
+HUD's watchdog (below) will hide it out from under you mid-hold. Note also
+that Lua's `repeat` is a reserved keyword (the `repeat...until` loop), so the
+option name the `o.bind` wrapper actually exposes is `repeating`, not
+`repeat` — `{ repeat = true }` is a syntax error.
+
+**Finally, enable the plugin** — Omarchy lands all newly-discovered plugins
+disabled by default so you can review the code first:
+
+```bash
+omarchy plugin enable user.window-switcher
+```
+
+Skipping this step is exactly why the HUD silently does nothing: the shell
+never even instantiates an overlay plugin's QML (including its `FileView`
+watcher) until it's enabled, regardless of what the state file says.
 
 ## Known limitations
 
@@ -72,3 +90,21 @@ o.bind("Alt_R", "End window-switcher session (right alt)", "hypr-cycle-window-en
   icon name, which the HUD then further falls back from (via
   `Quickshell.iconPath`) to a generic executable icon if that name isn't in
   the icon theme either.
+- **The Alt-release keybind (`hypr-cycle-window-end.sh`) can be missed.** A
+  Hyprland config reload (`hyprctl reload`) while Alt is physically held
+  resets the compositor's internal press-tracking, so the release event that
+  should fire the unbind script sometimes never arrives — which would
+  otherwise leave the HUD stuck on screen indefinitely (observed firsthand;
+  also confirmed the state file can survive a full reboot, since it's a
+  plain file under `~/.local/state`, so a stale session can resurface after
+  restart too). Two defenses against this, both already applied above:
+  - `hypr-cycle-window.sh` validates every address in a leftover session
+    file against the *current* window list before trusting it; any mismatch
+    (e.g. from before a reboot) discards it and takes a fresh snapshot
+    instead of rendering broken/blank icons.
+  - The plugin runs a 2.5s watchdog timer (reset on every Tab press) that
+    force-hides the HUD if the state file goes stale for any reason — a
+    backstop independent of whether the release keybind ever fires.
+  - `hypr-cycle-window-end.sh` also runs once at Hyprland login/reboot
+    (`hypr/autostart.lua`), so a stuck-visible state file left over from a
+    crash or reboot can't resurrect the HUD on the next session either.
