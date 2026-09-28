@@ -168,3 +168,11 @@ Options:
   -m <message>  Commit message for current changes
   -h            Show help
 ```
+
+## Related repos
+
+- [omarchy-window-switcher](https://github.com/sroomberg/omarchy-window-switcher) —
+  all-workspace Alt+Tab + macOS-style HUD for Omarchy, published as an
+  installable plugin (`omarchy plugin add`). Originally developed here under
+  `linux/omarchy/window-switcher/`, split out to its own repo so it can be
+  distributed standalone.
